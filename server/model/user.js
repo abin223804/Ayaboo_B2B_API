@@ -8,13 +8,11 @@ const userSchema = new mongoose.Schema(
     shopName: {
       type: String,
     },
-
     mobile: {
       type: String,
       required: false,
       minLength: 10,
     },
-
     mobile4OTP: {
       type: String,
       required: false,
@@ -23,13 +21,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-
     otp: String,
+    otpExpires: {
+      type: Date,
+    },
     isVerified: {
       type: Boolean,
       default: false,
     },
-
     isBlocked: {
       type: Boolean,
       default: false,

@@ -13,20 +13,14 @@ const sendOtp = asyncHandler(async (req, res) => {
   try {
     const { mobile, mobile4OTP } = req.body;
 
-    console.log("req.body", req.body);
-
     if (!mobile || !mobile4OTP) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please fill all the inputs." });
+      return res.status(400).json({ success: false, message: "Please fill all the inputs." });
     }
 
-    const userExist = await User.findOne({ mobile: mobile ,isVerified :true });
+    const userExist = await User.findOne({ mobile: mobile, isVerified: true });
 
     if (userExist) {
-      return res
-        .status(400)
-        .json({ success: false, message: "User already exists." });
+      return res.status(400).json({ success: false, message: "User already exists." });
     }
 
     const otp = otpGenerator.generate(6, {
@@ -35,7 +29,8 @@ const sendOtp = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
-    console.log(`Generated OTP: ${otp}`);
+    const otpExpires = Date.now() + 60 * 1000;
+
     const options = {
       message: "157770",
       variables_values: otp,
@@ -46,54 +41,38 @@ const sendOtp = asyncHandler(async (req, res) => {
       language: "english",
     };
 
-    console.log("Sending request to Fast2SMS with options:", options);
+    const response = await axios.get(
+      `https://www.fast2sms.com/dev/bulkV2?authorization=${
+        process.env.FAST2SMS_API_KEY
+      }&route=${options.route}&message=${options.message}&language=${
+        options.language
+      }&flash=${options.flash}&numbers=${options.numbers.join(
+        ","
+      )}&sender_id=${options.sender_id}&entity_id=${
+        options.entity_id
+      }&variables_values=${options.variables_values}`
+    );
 
-    try {
-      const response = await axios.get(
-        `https://www.fast2sms.com/dev/bulkV2?authorization=${
-          process.env.FAST2SMS_API_KEY
-        }&route=${options.route}&message=${options.message}&language=${
-          options.language
-        }&flash=${options.flash}&numbers=${options.numbers.join(
-          ","
-        )}&sender_id=${options.sender_id}&entity_id=${
-          options.entity_id
-        }&variables_values=${options.variables_values}`
-      );
-
-      console.log("Response from Fast2SMS:", response.data);
-
-      if (!response.data.return) {
-        console.error("Error from Fast2SMS:", response.data);
-        return res.status(500).json({
-          success: false,
-          message: response.data.message || "Error sending OTP via Fast2SMS",
-        });
-      }
-    } catch (error) {
-      console.error("Error sending OTP via Fast2SMS:", error.message);
-      return res
-        .status(500)
-        .json({ success: false, message: "Error sending OTP" });
+    if (!response.data.return) {
+      return res.status(500).json({ success: false, message: response.data.message || "Error sending OTP via Fast2SMS" });
     }
 
     const newUser = new User({
       mobile,
       mobile4OTP,
       otp,
-      isVerified: false
+      otpExpires,
+      isVerified: false,
     });
 
     await newUser.save();
 
-    return res
-      .status(200)
-      .json({ success: true, message: "OTP sent successfully", newUser });
+    return res.status(200).json({ success: true, message: "OTP sent successfully", newUser });
   } catch (error) {
-    console.error("Internal Server Error:", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 const verifyOtp = asyncHandler(async (req, res) => {
   try {
@@ -102,37 +81,41 @@ const verifyOtp = asyncHandler(async (req, res) => {
     const user = await User.findOne({ mobile4OTP: mobile4OTP });
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    if (user.otpExpires < Date.now()) {
+      return res.status(400).json({ success: false, message: "OTP has expired" });
     }
 
     if (user.otp === otp) {
       user.isVerified = true;
       user.otp = undefined;
+      user.otpExpires = undefined;
       await user.save();
 
-      return res.json({
-        success: true,
-        message: "OTP verified successfully for Registration",
-      });
+      return res.json({ success: true, message: "OTP verified successfully for Registration" });
     }
+    
     return res.status(400).json({ success: false, message: "Invalid OTP" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 });
 
+
 const resendOtp = asyncHandler(async (req, res) => {
   try {
     const { mobile4OTP } = req.body;
 
-    console.log("req.body", req.body);
-
     if (!mobile4OTP) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please fill all the inputs." });
+      return res.status(400).json({ success: false, message: "Please fill all the inputs." });
+    }
+
+    const user = await User.findOne({ mobile4OTP: mobile4OTP });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const otp = otpGenerator.generate(6, {
@@ -141,7 +124,8 @@ const resendOtp = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
-    console.log(`Generated OTP: ${otp}`);
+    const otpExpires = Date.now() + 60 * 1000;
+
     const options = {
       message: "157770",
       variables_values: otp,
@@ -152,54 +136,32 @@ const resendOtp = asyncHandler(async (req, res) => {
       language: "english",
     };
 
-    console.log("Sending request to Fast2SMS with options:", options);
+    const response = await axios.get(
+      `https://www.fast2sms.com/dev/bulkV2?authorization=${
+        process.env.FAST2SMS_API_KEY
+      }&route=${options.route}&message=${options.message}&language=${
+        options.language
+      }&flash=${options.flash}&numbers=${options.numbers.join(
+        ","
+      )}&sender_id=${options.sender_id}&entity_id=${
+        options.entity_id
+      }&variables_values=${options.variables_values}`
+    );
 
-    try {
-      const response = await axios.get(
-        `https://www.fast2sms.com/dev/bulkV2?authorization=${
-          process.env.FAST2SMS_API_KEY
-        }&route=${options.route}&message=${options.message}&language=${
-          options.language
-        }&flash=${options.flash}&numbers=${options.numbers.join(
-          ","
-        )}&sender_id=${options.sender_id}&entity_id=${
-          options.entity_id
-        }&variables_values=${options.variables_values}`
-      );
-
-      console.log("Response from Fast2SMS:", response.data);
-
-      if (!response.data.return) {
-        console.error("Error from Fast2SMS:", response.data);
-        return res.status(500).json({
-          success: false,
-          message: response.data.message || "Error sending OTP via Fast2SMS",
-        });
-      }
-    } catch (error) {
-      console.error("Error sending OTP via Fast2SMS:", error.message);
-      return res
-        .status(500)
-        .json({ success: false, message: "Error sending OTP" });
+    if (!response.data.return) {
+      return res.status(500).json({ success: false, message: response.data.message || "Error sending OTP via Fast2SMS" });
     }
 
-    const newUser = new User({
-    
-      mobile4OTP,
-      otp,
-      isVerified: false,
-    });
+    user.otp = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
 
-    await newUser.save();
-
-    return res
-      .status(200)
-      .json({ success: true, message: "OTP sent successfully", newUser });
+    return res.status(200).json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
-    console.error("Internal Server Error:", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 const registerUser = asyncHandler(async (req, res) => {
   const { name, shopName, pinCode, mobile , isWhatsappApproved } = req.body;
