@@ -81,7 +81,7 @@ const sendOtp = asyncHandler(async (req, res) => {
       mobile,
       mobile4OTP,
       otp,
-      isVerified: false,
+      isVerified
     });
 
     await newUser.save();
