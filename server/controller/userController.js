@@ -125,11 +125,11 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
 const resendOtp = asyncHandler(async (req, res) => {
   try {
-    const { mobile, mobile4OTP } = req.body;
+    const { mobile4OTP } = req.body;
 
     console.log("req.body", req.body);
 
-    if (!mobile || !mobile4OTP) {
+    if (!mobile4OTP) {
       return res
         .status(400)
         .json({ success: false, message: "Please fill all the inputs." });
@@ -184,7 +184,7 @@ const resendOtp = asyncHandler(async (req, res) => {
     }
 
     const newUser = new User({
-      mobile,
+    
       mobile4OTP,
       otp,
       isVerified: false,
