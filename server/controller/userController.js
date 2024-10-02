@@ -21,7 +21,7 @@ const sendOtp = asyncHandler(async (req, res) => {
         .json({ success: false, message: "Please fill all the inputs." });
     }
 
-    const userExist = await User.findOne({ mobile: mobile ,isVerified });
+    const userExist = await User.findOne({ mobile: mobile ,isVerified :true });
 
     if (userExist) {
       return res
@@ -81,7 +81,7 @@ const sendOtp = asyncHandler(async (req, res) => {
       mobile,
       mobile4OTP,
       otp,
-      isVerified
+      isVerified: false
     });
 
     await newUser.save();
