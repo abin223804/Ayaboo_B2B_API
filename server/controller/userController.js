@@ -10,36 +10,36 @@ import asyncHandler from "../middleware/asyncHandler.js";
 
 dotenv.config();
 
-const sendOtp = asyncHandler(async (req, res) => {
-  try {
-    const { mobile } = req.body;
+// const sendOtp = asyncHandler(async (req, res) => {
+//   try {
+//     const { mobile } = req.body;
 
-    if (!mobile) {
-      return res.status(400).json({ success: false, message: 'Please provide a mobile number.' });
-    }
+//     if (!mobile) {
+//       return res.status(400).json({ success: false, message: 'Please provide a mobile number.' });
+//     }
 
-    const userExist = await User.findOne({ mobile });
+//     const user = await User.findOne({ mobile });
 
-    if (userExist && userExist.isVerified ) {
-      return res.status(200).json({ success: false, message: 'User already exists and is verified.' });
-    }
+//     if (user && user.isVerified ) {
+//       return res.status(200).json({ success: false, message: 'User already exists and is verified.',user });
+//     }
 
-    if (!userExist) {
-      const user = new User({ mobile });
-      await user.save();
-    }
+//     if (!user) {
+//       const newUser = new User({ mobile });
+//       await newUser.save();
+//     }
 
-    const otp = otpGenerator.generate(6, {
-      upperCaseAlphabets: false,
-      lowerCaseAlphabets: false,
-      specialChars: false,
-    });
+//     const otp = otpGenerator.generate(6, {
+//       upperCaseAlphabets: false,
+//       lowerCaseAlphabets: false,
+//       specialChars: false,
+//     });
 
 
-    console.log("sendOtp",otp );
+//     console.log("sendOtp",otp );
     
 
-    const mobileNumber = mobile.split('-')[1];
+//     const mobileNumber = mobile.split('-')[1];
 
     // const options = {
     //   message: '157770',
@@ -59,6 +59,76 @@ const sendOtp = asyncHandler(async (req, res) => {
     //   return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
     // }
 
+//     const otpEntry = new Otp({
+//       mobile,
+//       otp,
+//     });
+
+//     await otpEntry.save();
+
+//     return res.status(200).json({ success: true, message: 'OTP sent successfully', user });
+//   } catch (error) {
+//     console.log(error.message);
+    
+//     return res.status(500).json({ success: false, message: error.message });
+//   }
+// });
+
+
+const sendOtp = asyncHandler(async (req, res) => {
+  try {
+    const { mobile } = req.body;
+
+    if (!mobile) {
+      return res.status(400).json({ success: false, message: 'Please provide a mobile number.' });
+    }
+
+    let user = await User.findOne({ mobile });
+    if (user && user.isVerified) {
+      return res.status(200).json({ success: false, message: 'User already exists and is verified.', user });
+    }
+
+    if (!user) {
+      const newUser = new User({ mobile });
+      await newUser.save();
+
+      user=newUser
+    }
+
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    console.log("Generated OTP:", otp);
+
+    const mobileNumber = mobile.split('-')[1]; 
+
+     // const options = {
+    //   message: '157770',
+    //   variables_values: otp,
+    //   numbers: [mobileNumber],
+    //   route: 'dlt',
+    //   sender_id: process.env.SENDER_ID,
+    //   flash: '0',
+    //   language: 'english',
+    // };
+
+    // const response = await axios.get(
+    //   `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
+    // );
+
+    // if (!response.data.return) {
+    //   return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
+    // }
+
+    const existingOtp = await Otp.findOne({ mobile });
+
+    if (existingOtp) {
+      return res.status(400).json({ success: false, message: 'OTP already sent. Please try again after some time.' });
+    }
+
     const otpEntry = new Otp({
       mobile,
       otp,
@@ -69,10 +139,22 @@ const sendOtp = asyncHandler(async (req, res) => {
     return res.status(200).json({ success: true, message: 'OTP sent successfully', user });
   } catch (error) {
     console.log(error.message);
-    
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const verifyOtp = asyncHandler(async (req, res) => {
@@ -325,7 +407,7 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
     const otpRecord = await Otp.findOne({ mobile });
 
 
-    if (!otpRecord || otpRecord.otp !== otp) {
+   if (!otpRecord || otpRecord.otp !== otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
 
