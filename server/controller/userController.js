@@ -20,11 +20,11 @@ const sendOtp = asyncHandler(async (req, res) => {
 
     const user = await User.findOne({ mobile });
 
-    if (user) {
-      if (user.isVerified) {
-        return res.status(400).json({ success: false, message: 'User already exists and is verified.' });
-      }
-    } else {
+    if (user && user.isVerified && user.isRegistered) {
+      return res.status(400).json({ success: false, message: 'User already exists and is verified.' });
+    }
+
+    if (!user) {
       const newUser = new User({ mobile });
       await newUser.save();
     }
@@ -35,12 +35,12 @@ const sendOtp = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
-    const mobileNumber = mobile.split('-')[1]; // Extract the numeric portion only
+    const mobileNumber = mobile.split('-')[1];
 
     const options = {
       message: '157770',
       variables_values: otp,
-      numbers: [mobileNumber], // Send only the extracted number to Fast2SMS
+      numbers: [mobileNumber],
       route: 'dlt',
       sender_id: process.env.SENDER_ID,
       flash: '0',
@@ -55,7 +55,6 @@ const sendOtp = asyncHandler(async (req, res) => {
       return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
     }
 
-    // Save the OTP entry
     const otpEntry = new Otp({
       mobile,
       otp,
@@ -68,6 +67,7 @@ const sendOtp = asyncHandler(async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 const verifyOtp = asyncHandler(async (req, res) => {
   try {
