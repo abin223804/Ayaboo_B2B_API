@@ -87,7 +87,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
     const otpRecord = await Otp.findOne({ mobile });
 
 
-    if (!otpRecord.otp) {
+    if (!otpRecord || otpRecord.otp !== otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
 
@@ -325,7 +325,7 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
     const otpRecord = await Otp.findOne({ mobile });
 
 
-    if (!otpRecord.otp) {
+    if (!otpRecord || otpRecord.otp !== otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
 
