@@ -100,6 +100,9 @@ const sendOtp = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
+    console.log("otp",otp);
+    
+
     const mobileNumber = mobile.split('-')[1];
     const existingOtp = await Otp.findOne({ mobile });
 
