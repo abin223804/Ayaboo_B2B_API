@@ -315,13 +315,18 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    const otpRecord = await Otp.findOne({mobile,otp});
- 
-    if (!otpRecord || otpRecord.otp !== otp) {
+    const otpRecord = await Otp.findOne({ mobile });
+
+
+    if (!otpRecord.otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
 
-    user.isVerified = true;
+    if (Date.now() > otpRecord.expireAt) {
+      return res.status(401).json({ success: false, message: 'OTP has expired. Please request a new OTP.' });
+    }
+
+    user.isVerified = true; 
     await user.save();
 
     await Otp.deleteOne({ mobile });
@@ -347,10 +352,11 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     console.log(error.message);
-
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: 'Internal Server Error.' });
   }
 });
+
+
 
  
 
