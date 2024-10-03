@@ -91,8 +91,7 @@ const sendOtp = asyncHandler(async (req, res) => {
     if (!user) {
       const newUser = new User({ mobile });
       await newUser.save();
-
-      user=newUser
+      user = newUser;
     }
 
     const otp = otpGenerator.generate(6, {
@@ -101,9 +100,16 @@ const sendOtp = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
-    console.log("Generated OTP:", otp);
+    const mobileNumber = mobile.split('-')[1];
+    const existingOtp = await Otp.findOne({ mobile });
 
-    const mobileNumber = mobile.split('-')[1]; 
+    if (existingOtp) {
+      existingOtp.otp = otp;
+      await existingOtp.save();
+    } else {
+      const otpEntry = new Otp({ mobile, otp });
+      await otpEntry.save();
+    }
 
      // const options = {
     //   message: '157770',
@@ -123,25 +129,13 @@ const sendOtp = asyncHandler(async (req, res) => {
     //   return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
     // }
 
-    const existingOtp = await Otp.findOne({ mobile });
-
-    if (existingOtp) {
-      return res.status(400).json({ success: false, message: 'OTP already sent. Please try again after some time.' });
-    }
-
-    const otpEntry = new Otp({
-      mobile,
-      otp,
-    });
-
-    await otpEntry.save();
-
     return res.status(200).json({ success: true, message: 'OTP sent successfully', user });
   } catch (error) {
     console.log(error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 });
+
 
 
 
