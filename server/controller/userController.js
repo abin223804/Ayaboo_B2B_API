@@ -179,6 +179,7 @@ const registerUser = asyncHandler(async (req, res) => {
     user.mobile = mobile;
     user.isWhatsappApproved = isWhatsappApproved;
     user.isVerified = true;
+    user.isRegistered = true;
 
     const newUser = await user.save();
 
@@ -296,7 +297,11 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    const otpRecord = await Otp.findOne({ mobile });
+    const otpRecord = await Otp.findOne({mobile});
+    console.log("otpRecord ",otpRecord );
+    console.log("otpRecord.otp ",otpRecord.otp );
+    
+    
 
     if (!otpRecord || otpRecord.otp !== otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
