@@ -37,23 +37,23 @@ const sendOtp = asyncHandler(async (req, res) => {
 
     const mobileNumber = mobile.split('-')[1];
 
-    const options = {
-      message: '157770',
-      variables_values: otp,
-      numbers: [mobileNumber],
-      route: 'dlt',
-      sender_id: process.env.SENDER_ID,
-      flash: '0',
-      language: 'english',
-    };
+    // const options = {
+    //   message: '157770',
+    //   variables_values: otp,
+    //   numbers: [mobileNumber],
+    //   route: 'dlt',
+    //   sender_id: process.env.SENDER_ID,
+    //   flash: '0',
+    //   language: 'english',
+    // };
 
-    const response = await axios.get(
-      `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
-    );
+    // const response = await axios.get(
+    //   `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
+    // );
 
-    if (!response.data.return) {
-      return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
-    }
+    // if (!response.data.return) {
+    //   return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
+    // }
 
     const otpEntry = new Otp({
       mobile,
@@ -115,23 +115,23 @@ const resendOtp = asyncHandler(async (req, res) => {
 
     const mobileNumber = mobile.split('-')[1]; 
 
-    const options = {
-      message: '157770',
-      variables_values: otp,
-      numbers: [mobileNumber], 
-      route: 'dlt',
-      sender_id: process.env.SENDER_ID,
-      flash: '0',
-      language: 'english',
-    };
+    // const options = {
+    //   message: '157770',
+    //   variables_values: otp,
+    //   numbers: [mobileNumber], 
+    //   route: 'dlt',
+    //   sender_id: process.env.SENDER_ID,
+    //   flash: '0',
+    //   language: 'english',
+    // };
 
-    const response = await axios.get(
-      `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
-    );
+    // const response = await axios.get(
+    //   `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
+    // );
 
-    if (!response.data.return) {
-      return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
-    }
+    // if (!response.data.return) {
+    //   return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
+    // }
 
     await Otp.findOneAndUpdate(
       { mobile },
@@ -232,10 +232,10 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    if (!user.isVerified) {
+    if (!user.isVerified && !user.isRegistered) {
       return res.status(400).json({
         success: false,
-        message: 'User is not verified. Please complete the verification process.',
+        message: 'User is not verified and not registered . Please complete the verification and registration process.',
       });
     }
 
@@ -247,26 +247,26 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
 
     const mobileNumber = mobile.split('-')[1];
 
-    const options = {
-      message: '157770',
-      variables_values: otp,
-      numbers: [mobileNumber],
-      route: 'dlt',
-      sender_id: process.env.SENDER_ID,
-      flash: '0',
-      language: 'english',
-    };
+    // const options = {
+    //   message: '157770',
+    //   variables_values: otp,
+    //   numbers: [mobileNumber],
+    //   route: 'dlt',
+    //   sender_id: process.env.SENDER_ID,
+    //   flash: '0',
+    //   language: 'english',
+    // };
 
-    const response = await axios.get(
-      `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
-    );
+    // const response = await axios.get(
+    //   `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
+    // );
 
-    if (!response.data.return) {
-      return res.status(500).json({
-        success: false,
-        message: response.data.message || 'Error sending OTP via Fast2SMS',
-      });
-    }
+    // if (!response.data.return) {
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: response.data.message || 'Error sending OTP via Fast2SMS',
+    //   });
+    // }
 
     await Otp.findOneAndUpdate(
       { mobile },
@@ -297,12 +297,8 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
-    const otpRecord = await Otp.findOne({mobile});
-    console.log("otpRecord ",otpRecord );
-    console.log("otpRecord.otp ",otpRecord.otp );
-    
-    
-
+    const otpRecord = await Otp.findOne({mobile,otp});
+ 
     if (!otpRecord || otpRecord.otp !== otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
