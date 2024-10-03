@@ -197,6 +197,7 @@ const registerUser = asyncHandler(async (req, res) => {
     user.pinCode = pinCode;
     user.mobile = mobile;
     user.isWhatsappApproved = isWhatsappApproved;
+    user.policyVerified = policyVerified;
     user.isVerified = true;
     user.isRegistered = true;
 
