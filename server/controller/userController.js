@@ -248,10 +248,12 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
     });
 
     console.log(`Generated OTP: ${otp}`);
+    const mobileNumber = mobile.split('-')[1]; 
+
     const options = {
       message: "157770",
       variables_values: otp,
-      numbers: [mobile],
+      numbers: [mobileNumber],
       route: "dlt",
       sender_id: process.env.SENDER_ID,
       flash: "0",
