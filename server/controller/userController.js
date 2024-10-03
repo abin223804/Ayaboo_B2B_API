@@ -18,15 +18,15 @@ const sendOtp = asyncHandler(async (req, res) => {
       return res.status(400).json({ success: false, message: 'Please provide a mobile number.' });
     }
 
-    const user = await User.findOne({ mobile });
+    const userExist = await User.findOne({ mobile });
 
-    if (user && user.isVerified ) {
+    if (userExist && userExist.isVerified ) {
       return res.status(200).json({ success: false, message: 'User already exists and is verified.' });
     }
 
-    if (!user) {
-      const newUser = new User({ mobile });
-      await newUser.save();
+    if (!userExist) {
+      const user = new User({ mobile });
+      await user.save();
     }
 
     const otp = otpGenerator.generate(6, {
