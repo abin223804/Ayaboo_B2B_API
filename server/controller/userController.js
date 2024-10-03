@@ -35,6 +35,10 @@ const sendOtp = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
+
+    console.log("sendOtp",otp );
+    
+
     const mobileNumber = mobile.split('-')[1];
 
     // const options = {
@@ -64,6 +68,8 @@ const sendOtp = asyncHandler(async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'OTP sent successfully', user });
   } catch (error) {
+    console.log(error.message);
+    
     return res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -89,6 +95,8 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
     return res.json({ success: true, message: 'OTP verified successfully.' });
   } catch (error) {
+    console.log(error.message);
+
     return res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -112,6 +120,9 @@ const resendOtp = asyncHandler(async (req, res) => {
       lowerCaseAlphabets: false,
       specialChars: false,
     });
+
+    console.log("resendOtp", otp);
+    
 
     const mobileNumber = mobile.split('-')[1]; 
 
@@ -141,6 +152,8 @@ const resendOtp = asyncHandler(async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'OTP resent successfully.' });
   } catch (error) {
+    console.log(error.message);
+
     return res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -245,6 +258,9 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
       specialChars: false,
     });
 
+    console.log("sendOtpForLogin", otp);
+    
+
     const mobileNumber = mobile.split('-')[1];
 
     // const options = {
@@ -276,6 +292,8 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
 
     return res.status(200).json({ success: true, message: 'OTP sent successfully.' });
   } catch (error) {
+    console.log(error.message);
+
     return res.status(500).json({ success: false, message: 'Internal Server Error.' });
   }
 });
@@ -328,6 +346,8 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
       token,
     });
   } catch (error) {
+    console.log(error.message);
+
     return res.status(500).json({ success: false, message: error.message });
   }
 });
