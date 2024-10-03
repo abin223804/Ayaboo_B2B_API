@@ -21,7 +21,7 @@ const sendOtp = asyncHandler(async (req, res) => {
     const user = await User.findOne({ mobile });
 
     if (user && user.isVerified ) {
-      return res.status(200).json({ success: false, message: 'User already exists and is verified.',user });
+      return res.status(200).json({ success: false, message: 'User already exists and is verified.' });
     }
 
     if (!user) {
