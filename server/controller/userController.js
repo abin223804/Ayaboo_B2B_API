@@ -218,14 +218,14 @@ const registerUser = asyncHandler(async (req, res) => {
 //login user here --------------------------------
 
 const sendOtpForLogin = asyncHandler(async (req, res) => {
-  const { mobile4OTP } = req.body;
+  const { mobile } = req.body;
 
-  if (!mobile4OTP) {
+  if (!mobile) {
     return res.status(400).json({ message: "Please provide mobile number" });
   }
 
   try {
-    const user = await User.findOne({ mobile4OTP });
+    const user = await User.findOne({ mobile });
 
     if (!user) {
       return res
@@ -251,7 +251,7 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
     const options = {
       message: "157770",
       variables_values: otp,
-      numbers: [mobile4OTP],
+      numbers: [mobile],
       route: "dlt",
       sender_id: process.env.SENDER_ID,
       flash: "0",
@@ -302,10 +302,10 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
 // verifyOtpForLogin ----------------------------------------------------------------
 
 const verifyOtpForLogin = asyncHandler(async (req, res) => {
-  const { mobile4OTP, otp } = req.body;
+  const { mobile, otp } = req.body;
 
   try {
-    const user = await User.findOne({ mobile4OTP });
+    const user = await User.findOne({ mobile });
     if (!user) {
       return res
         .status(404)

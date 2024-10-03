@@ -13,10 +13,7 @@ const userSchema = new mongoose.Schema(
       required: false,
       minLength: 10,
     },
-    mobile4OTP: {
-      type: String,
-      required: false,
-    },
+ 
     pinCode: {
       type: String,
       required: false,

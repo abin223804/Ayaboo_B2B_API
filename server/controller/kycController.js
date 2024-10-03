@@ -31,7 +31,7 @@ const submitKyc = async (req, res) => {
         buildingName: req.body.buildingName,
         street: req.body.street,
         post: req.body.post,
-        pincode: req.body.pincode,
+        pinCode: req.body.pinCode,
         state: req.body.state,
         country: req.body.country,
         proof: fileUrl,
