@@ -167,7 +167,7 @@ const resendOtp = asyncHandler(async (req, res) => {
 
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, shopName, pinCode, mobile , isWhatsappApproved } = req.body;
+  const { name, shopName, pinCode, mobile , isWhatsappApproved, policyVerified} = req.body;
   console.log("req.body", req.body);
 
   if (!name || !shopName || !pinCode) {
