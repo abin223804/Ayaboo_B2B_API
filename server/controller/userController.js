@@ -76,16 +76,22 @@ const sendOtp = asyncHandler(async (req, res) => {
 
 
 const verifyOtp = asyncHandler(async (req, res) => {
+
+  const { mobile, otp } = req.body;
+  if (!mobile || !otp) {
+    return res.status(400).json({ success: false, message: 'Please provide both mobile number and OTP.' });
+  }
+
   try {
-    const { mobile, otp } = req.body;
 
-    const otpEntry = await Otp.findOne({ mobile, otp });
+    const otpRecord = await Otp.findOne({ mobile });
 
-    if (!otpEntry) {
-      return res.status(400).json({ success: false, message: 'OTP has expired or is invalid.' });
+
+    if (!otpRecord.otp) {
+      return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
 
-    await Otp.deleteOne({ _id: otpEntry._id });
+    await Otp.deleteOne({ mobile });
 
     const user = await User.findOne({ mobile });
     if (user) {
