@@ -2,6 +2,8 @@ import express from "express";
 import userController from "../controller/userController.js";
 import kycController from "../controller/kycController.js";
 import notificationController from "../controller/notificationController.js";
+import { KycUpload } from "../config/kycUpload.js";
+
 
 
 import {authenticateUser,} from "../middleware/auth.js";
@@ -35,7 +37,18 @@ router.post("/verifyOtpForLogin", userController.verifyOtpForLogin);
 
 //route for submitkyc
 
-router.post("/submitKyc",authenticateUser, kycController.submitKyc);
+// router.post("/submitKyc",authenticateUser, kycController.submitKyc);
+
+router.post(
+    "/submitKyc",
+    authenticateUser,
+    KycUpload,
+ 
+    kycController.submitKyc
+  );
+  
+
+
 
 
 router.get("/getNotifications/:userId",authenticateUser,notificationController.getUserNotification);

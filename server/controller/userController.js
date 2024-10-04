@@ -10,70 +10,6 @@ import asyncHandler from "../middleware/asyncHandler.js";
 
 dotenv.config();
 
-// const sendOtp = asyncHandler(async (req, res) => {
-//   try {
-//     const { mobile } = req.body;
-
-//     if (!mobile) {
-//       return res.status(400).json({ success: false, message: 'Please provide a mobile number.' });
-//     }
-
-//     const user = await User.findOne({ mobile });
-
-//     if (user && user.isVerified ) {
-//       return res.status(200).json({ success: false, message: 'User already exists and is verified.',user });
-//     }
-
-//     if (!user) {
-//       const newUser = new User({ mobile });
-//       await newUser.save();
-//     }
-
-//     const otp = otpGenerator.generate(6, {
-//       upperCaseAlphabets: false,
-//       lowerCaseAlphabets: false,
-//       specialChars: false,
-//     });
-
-
-//     console.log("sendOtp",otp );
-    
-
-//     const mobileNumber = mobile.split('-')[1];
-
-    // const options = {
-    //   message: '157770',
-    //   variables_values: otp,
-    //   numbers: [mobileNumber],
-    //   route: 'dlt',
-    //   sender_id: process.env.SENDER_ID,
-    //   flash: '0',
-    //   language: 'english',
-    // };
-
-    // const response = await axios.get(
-    //   `https://www.fast2sms.com/dev/bulkV2?authorization=${process.env.FAST2SMS_API_KEY}&route=${options.route}&message=${options.message}&language=${options.language}&flash=${options.flash}&numbers=${options.numbers.join(",")}&sender_id=${options.sender_id}&variables_values=${options.variables_values}`
-    // );
-
-    // if (!response.data.return) {
-    //   return res.status(500).json({ success: false, message: response.data.message || 'Error sending OTP via Fast2SMS' });
-    // }
-
-//     const otpEntry = new Otp({
-//       mobile,
-//       otp,
-//     });
-
-//     await otpEntry.save();
-
-//     return res.status(200).json({ success: true, message: 'OTP sent successfully', user });
-//   } catch (error) {
-//     console.log(error.message);
-    
-//     return res.status(500).json({ success: false, message: error.message });
-//   }
-// });
-
 
 const sendOtp = asyncHandler(async (req, res) => {
   try {
@@ -252,9 +188,9 @@ const registerUser = asyncHandler(async (req, res) => {
   if (!name || !shopName || !pinCode) {
     return res
       .status(400)
-      .json({ message: "Name, email, and mobile number are required" });
+      .json({ message: "Name, shopName and mobile number are required" });
   }
-
+ 
   try {
     const user = await User.findOne({ mobile });
     console.log("user", user);
@@ -370,11 +306,15 @@ const sendOtpForLogin = asyncHandler(async (req, res) => {
     //   });
     // }
 
-    await Otp.findOneAndUpdate(
-      { mobile },
-      { otp, expireAt: Date.now() + 60 * 1000 },
-      { upsert: true, new: true }
-    );
+    const existingOtp = await Otp.findOne({ mobile });
+
+    if (existingOtp) {
+      existingOtp.otp = otp;
+      await existingOtp.save();
+    } else {
+      const otpEntry = new Otp({ mobile, otp });
+      await otpEntry.save();
+    }
 
     return res.status(200).json({ success: true, message: 'OTP sent successfully.' });
   } catch (error) {
@@ -402,15 +342,17 @@ const verifyOtpForLogin = asyncHandler(async (req, res) => {
     }
 
     const otpRecord = await Otp.findOne({ mobile });
+console.log("otpRecord",otpRecord);
 
 
    if (!otpRecord || otpRecord.otp !== otp) {
       return res.status(401).json({ success: false, message: 'Incorrect OTP or OTP expired.' });
     }
 
-    if (Date.now() > otpRecord.expireAt) {
-      return res.status(401).json({ success: false, message: 'OTP has expired. Please request a new OTP.' });
-    }
+    console.log(otpRecord.otp );
+    
+
+  
 
     user.isVerified = true; 
     await user.save();

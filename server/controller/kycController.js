@@ -5,59 +5,53 @@ import Notification from "../model/notification.js";
 import User from "../model/user.js";
 import asyncHandler from "../middleware/asyncHandler.js";
 
+
 const submitKyc = async (req, res) => {
-  KycUpload(req, res, async (err) => {
-    if (err) {
-      console.error("Upload error:", err.message);
-      return res.status(400).json({ error: err.message });
+  if (!req.file) {
+    return res.status(400).json({ error: "File upload failed or no file uploaded" });
+  }
+
+  const basePath = `${req.secure ? "https" : "http"}://${req.get("host")}/public/uploads/kyc`; 
+  const fileUrl = `${basePath}/${req.file.filename}`; 
+
+  try {
+    const newKYC = new Kyc({
+      businessName: req.body.businessName,
+      emailId: req.body.emailId,
+      buildingName: req.body.buildingName,
+      street: req.body.street,
+      post: req.body.post,
+      pinCode: req.body.pinCode,
+      state: req.body.state,
+      country: req.body.country,
+      proof: fileUrl, 
+      proofType: req.body.proofType,
+      userId: req.user,
+    });
+
+    const userIdExist = await Kyc.findOne({ userId: req.user });
+
+    if (userIdExist) {
+      return res.status(400).json({ message: "User already submitted KYC" });
     }
 
-    if (!req.file) {
-      return res
-        .status(400)
-        .json({ error: "File upload failed or no file uploaded" });
-    }
-
-    const basePath = `${req.secure ? "https" : "http"}://${req.get(
-      "host"
-    )}/public/uploads`;
-
-    const fileUrl = `${basePath}/${req.file.filename}`;
-
-    try {
-      const newKYC = new Kyc({
-        businessName: req.body.businessName,
-        emailId: req.body.emailId,
-        buildingName: req.body.buildingName,
-        street: req.body.street,
-        post: req.body.post,
-        pinCode: req.body.pinCode,
-        state: req.body.state,
-        country: req.body.country,
-        proof: fileUrl,
-        proofType: req.body.proofType,
-        userId: req.user.userId,
+    const savekyc = await newKYC.save();
+    if (savekyc) {
+      await Notification.create({
+        type: "kyc_submitted",
+        message: `A new KYC has been submitted: ${savekyc.businessName}`,
+        recipientType: "admin",
+        relatedUser: savekyc._id,
       });
-
-      const savekyc = await newKYC.save();
-      if (savekyc) {
-        await Notification.create({
-          type: "kyc_submitted",
-          message: `A new KYC has been submitted: ${savekyc.businessName}`,
-          recipientType: "admin",
-          relatedUser: savekyc._id,
-        });
-      }
-
-      return res.status(200).json({ message: "KYC submitted successfully!" });
-    } catch (error) {
-      console.error("Internal Server Error:", error.message);
-      return res
-        .status(500)
-        .json({ success: false, message: "Internal Server Error" });
     }
-  });
+
+    return res.status(200).json({ message: "KYC submitted successfully!" });
+  } catch (error) {
+    console.error("Internal Server Error:", error.message);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 };
+
 
 
 
